@@ -41,11 +41,14 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         PhotonNetwork.CreateRoom(roomName, options);
     }
 
+    // joins a room of the requested room name
     public void JoinRoom (string roomName)
     {
         PhotonNetwork.JoinRoom(roomName);
     }
 
+    // changes the scene through Photon's systems
+    [PunRPC]
     public void ChangeScene (string sceneName)
     {
         PhotonNetwork.LoadLevel(sceneName);
