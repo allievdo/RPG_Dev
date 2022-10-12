@@ -61,6 +61,9 @@ public class Menu : MonoBehaviourPunCallbacks, ILobbyCallbacks
 
         // activate the requested screen
         screen.SetActive(true);
+
+        if (screen == lobbyBrowserScreen)
+            UpdateLobbyBrowserUI();
     }
 
     // called when the "Back" button gets pressed
@@ -143,5 +146,58 @@ public class Menu : MonoBehaviourPunCallbacks, ILobbyCallbacks
     {
         PhotonNetwork.LeaveRoom();
         SetScreen(mainScreen);
+    }
+
+        // LOBBY BROWSER SCREEN
+
+    GameObject CreateRoomButton ()
+    {
+        GameObject buttonObj = Instantiate(roomButtonPrefab, roomListContainer.transform);
+        roomButtons.Add(buttonObj);
+
+        return buttonObj;
+    }
+
+    void UpdateLobbyBrowserUI ()
+    {
+        // disable all room button
+        foreach(GameObject button in roomButtons)
+            button.SetActive(false);
+
+        // display all current rooms in the master server
+        for(int x = 0; x < roomList.Count; ++x)
+        {
+            // get or create the button object
+            GameObject button = x >= roomButtons.Count ? CreateRoomButton() : roomButtons[x];
+
+            button.SetActive(true);
+
+            // set the room name and player count texts
+            button.transform.Find("RoomNameText").GetComponent<TextMeshProUGUI>().text = roomList[x].Name;
+            button.transform.Find("PlayerCountText").GetComponent<TextMeshProUGUI>().text = roomList[x].PlayerCount + " / " + roomList[x].MaxPlayers;
+
+            // set the button OnClick event
+            Button buttonComp = button.GetComponent<Button>();
+
+            string roomName = roomList[x].Name;
+
+            buttonComp.onClick.RemoveAllListeners();
+            buttonComp.onClick.AddListener(() => { OnJoinRoomButton(roomName); });
+        }    
+    }
+
+    public void OnJoinRoomButton (string roomName)
+    {
+        NetworkManager.instance.JoinRoom(roomName);
+    }
+
+    public void OnRefreshButton ()
+    {
+        UpdateLobbyBrowserUI();
+    }
+
+    public override void OnRoomListUpdate (List<RoomInfo> allRooms)
+    {
+        roomList = allRooms;
     }
 }
